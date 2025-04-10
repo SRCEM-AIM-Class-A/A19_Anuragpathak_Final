@@ -1,0 +1,19 @@
+version: '3.9'
+services:
+  flask_app:
+    build: ./flask_app
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+    volumes:
+      - ./flask_app:/app
+
+  django_app:
+    build: ./django_app
+    ports:
+      - "8000:8000"
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./django_app:/app
