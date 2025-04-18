@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Flask Image') {
+            steps {
+                sh 'docker build -t flask-app ./flask_app'
+            }
+        }
+
+        stage('Build Django Image') {
+            steps {
+                sh 'docker build -t django-app ./django_app'
+            }
+        }
+
+        stage('Run Docker Compose') {
+            steps {
+                sh 'docker-compose up -d'
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                    sh 'docker tag flask-app $DOCKER_USER/flask-app'
+                    sh 'docker tag django-app $DOCKER_USER/django-app'
+                    sh 'docker push $DOCKER_USER/flask-app'
+                    sh 'docker push $DOCKER_USER/django-app'
+                }
+            }
+        }
+    }
+}
